@@ -44,6 +44,8 @@ def load(path: Path) -> tuple[Crucible, list]:
     opts = onnxruntime.SessionOptions()
     # Each card's length differs; an arena keeps the largest card's buffers forever, and those reach gigabytes.
     opts.enable_cpu_mem_arena, opts.enable_mem_pattern = False, False
+    # onnxruntime's default of one thread per core runs slower on CPUs with efficiency cores.
+    opts.intra_op_num_threads = int(os.environ.get("CRUCIBLE_THREADS", "0"))
     session = onnxruntime.InferenceSession(str(path / "model.onnx"), opts, providers=["CPUExecutionProvider"])
     cfg = json.loads((path / "crucible.json").read_text())
     return Crucible(session, Tokenizer.from_file(str(path / "tokenizer.json")), cfg), json.loads((path / "fixtures.json").read_text())

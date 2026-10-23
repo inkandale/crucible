@@ -7,10 +7,12 @@ image:
 model: dgibbons/crucible
 revision: "v2"
 
-# An 8k-token card peaks at about 4.2 GB: the global attention layers hold full token-by-token matrices.
+# Measured in the pod: about 5 GB at start and on an 8k-token card, whose attention matrices are token by token.
 resources:
   requests:
-    cpu: 1
-    memory: 6Gi
+    cpu: 4
+    memory: 5.5Gi
   limits:
-    memory: 12Gi
+    memory: 8Gi
+# onnxruntime threads; on node03's i5-12600H, 4-8 run twice as fast as one per core.
+threads: 8

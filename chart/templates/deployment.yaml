@@ -22,6 +22,7 @@ spec:
           env:
             - { name: CRUCIBLE_MODEL, value: {{ .Values.model | quote }} }
             - { name: CRUCIBLE_REVISION, value: {{ .Values.revision | quote }} }
+            - { name: CRUCIBLE_THREADS, value: {{ .Values.threads | quote }} }
             - name: HF_TOKEN
               valueFrom: { secretKeyRef: { name: crucible-hf, key: credential } }
           ports:
