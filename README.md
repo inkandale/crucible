@@ -10,7 +10,7 @@ A bundle is a revision of the Hugging Face model repo holding `model.onnx`, `tok
 |---|---|---|
 | `CRUCIBLE_REVISION` | required | The bundle's tag, e.g. `v2` |
 | `CRUCIBLE_MODEL` | `dgibbons/crucible` | The Hugging Face model repo |
-| `HF_TOKEN` | none | A read token; the model repo is private |
+| `HF_TOKEN` | none | A Hugging Face token that can read the private model repo |
 | `HF_HOME` | `/cache` in the image | Where the bundle downloads |
 | `CRUCIBLE_BUNDLE` | none | A local bundle directory, used instead of downloading |
 | `PORT` | `8080` | The listen port |
