@@ -7,9 +7,10 @@ image:
 model: dgibbons/crucible
 revision: "v2"
 
+# An 8k-token card peaks at about 4.2 GB: the global attention layers hold full token-by-token matrices.
 resources:
   requests:
     cpu: 1
-    memory: 1Gi
+    memory: 4.5Gi
   limits:
-    memory: 3Gi
+    memory: 6Gi
