@@ -1,0 +1,20 @@
+[project]
+name = "crucible"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "huggingface_hub>=2.3",
+    "numpy>=2",
+    "onnxruntime>=1.31",
+    "tokenizers>=0.23",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130

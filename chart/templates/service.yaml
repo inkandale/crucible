@@ -1,0 +1,10 @@
+# In-cluster only: crucible's enrich plugin, in Innkeeper's pod, calls http://crucible.roleplay.svc.cluster.local:8080.
+apiVersion: v1
+kind: Service
+metadata:
+  name: crucible
+spec:
+  selector:
+    app.kubernetes.io/name: crucible
+  ports:
+    - { name: http, port: 8080, targetPort: http }

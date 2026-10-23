@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/inkandale/crucible
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2
+      - run: uv sync --frozen
+      - run: uv run pytest -q
+      - run: uv run ruff check .
+
+  build:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}:${{ github.sha }}
+
+      # The deploy: Argo takes the image from chart/Chart.yaml's appVersion.
+      # [skip ci] stops this push from rebuilding and re-pinning forever.
+      - name: Pin the sha just built
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          sed -i -E "s|^appVersion: .*|appVersion: \"${SHA}\"|" chart/Chart.yaml
+          if git diff --quiet -- chart/Chart.yaml; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(chart): deploy ${SHA} [skip ci]"
+          git push origin HEAD:main

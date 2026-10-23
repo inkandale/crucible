@@ -1,0 +1,15 @@
+image:
+  repository: ghcr.io/inkandale/crucible
+  # Empty means .Chart.AppVersion.
+  tag: ""
+
+# The Hugging Face model repo and the bundle tag to serve. A new model version is a new revision here.
+model: dgibbons/crucible
+revision: "v2"
+
+resources:
+  requests:
+    cpu: 1
+    memory: 1Gi
+  limits:
+    memory: 3Gi
