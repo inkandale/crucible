@@ -8,4 +8,4 @@ version: 0.1.0
 
 # The image pin. ci.yml rewrites this to the sha it just pushed and commits it
 # to main, so a merge deploys itself. Immutable shas only.
-appVersion: "unbuilt"
+appVersion: "7cbd0123c55b765c20a64c79ed2f9a3be7d412da"
