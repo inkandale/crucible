@@ -14,6 +14,7 @@ A bundle is a revision of the Hugging Face model repo holding `model.onnx`, `tok
 | `HF_HOME` | `/cache` in the image | Where the bundle downloads |
 | `CRUCIBLE_BUNDLE` | none | A local bundle directory, used instead of downloading |
 | `PORT` | `8080` | The listen port |
+| `CRUCIBLE_THREADS` | `0`, one per core | onnxruntime threads; fewer is faster on CPUs with efficiency cores |
 
 ## Ship a new model version
 
