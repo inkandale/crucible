@@ -41,7 +41,10 @@ def bundle() -> Path:
 def load(path: Path) -> tuple[Crucible, list]:
     import onnxruntime
     from tokenizers import Tokenizer
-    session = onnxruntime.InferenceSession(str(path / "model.onnx"), providers=["CPUExecutionProvider"])
+    opts = onnxruntime.SessionOptions()
+    # Each card's length differs; an arena keeps the largest card's buffers forever, and those reach gigabytes.
+    opts.enable_cpu_mem_arena, opts.enable_mem_pattern = False, False
+    session = onnxruntime.InferenceSession(str(path / "model.onnx"), opts, providers=["CPUExecutionProvider"])
     cfg = json.loads((path / "crucible.json").read_text())
     return Crucible(session, Tokenizer.from_file(str(path / "tokenizer.json")), cfg), json.loads((path / "fixtures.json").read_text())
 
