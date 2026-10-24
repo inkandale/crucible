@@ -10,6 +10,7 @@ from tokenizers import Tokenizer, models, pre_tokenizers
 from crucible.encode import encode, fields
 from crucible.model import Crucible, check
 from crucible.server import MAX_BODY, make_server
+from crucible.values import values
 
 ORDER = ["name", "description", "first_mes", "tags", "lorebook"]
 CFG = {
@@ -96,6 +97,17 @@ def test_field_chars_are_capped():
 
 def test_values():
     assert Crucible(FakeSession(), tokenizer(), CFG).score(CARD) == VALUES
+
+
+def test_rating_from_the_content_heads():
+    classes = {"card_type": CFG["classes"]["card_type"], "pov": CFG["classes"]["pov"],
+               "sexual": ["none", "suggestive", "explicit"], "violence": ["none", "mild", "graphic"]}
+    cfg = dict(CFG, classes=classes, ratings=["sfw", "suggestive", "nsfw"], extreme_flags=["flag:minor_risk"])
+    out = {k: np.array(v, dtype=np.float32) for k, v in LOGITS.items() if k != "class:rating"}
+    v = values(dict(out, **{"class:sexual": np.array([3, 0, 0]), "class:violence": np.array([0, 3, 0])}), cfg)
+    assert (v["sexual"], v["violence"], v["rating"]) == ("none", "mild", "suggestive")  # minor_risk hits, but nothing sexual
+    v = values(dict(out, **{"class:sexual": np.array([0, 3, 0]), "class:violence": np.array([3, 0, 0])}), cfg)
+    assert v["rating"] == "extreme"
 
 
 def test_feeds_int64_ids_with_a_full_mask():

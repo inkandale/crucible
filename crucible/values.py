@@ -19,6 +19,10 @@ def values(out: dict, cfg: dict) -> dict:
     probs = dict(zip(cfg["binary"], sigmoid(out["binary"])))
     hit = {h for h, p in probs.items() if p >= cutoffs.get(h, cutoffs["*"])}
     v["flags"] = sorted(h.removeprefix("flag:").replace("_", " ") for h in hit if h.startswith("flag:") or h == "low_effort")
+    if "ratings" in cfg:  # bundles with sexual and violence heads: crucible-trainer's publish.rating
+        levels = max(cfg["classes"][h].index(v[h]) for h in ("sexual", "violence"))
+        extreme = v["sexual"] != cfg["classes"]["sexual"][0] and hit & set(cfg["extreme_flags"])
+        v["rating"] = "extreme" if extreme else cfg["ratings"][levels]
     v["contradictions"] = sorted(" vs ".join(h.split(":")[1:]) for h in hit if h.startswith("contradiction:"))
     picks = sorted(((probs[h], int(h.split(":")[1])) for h in hit if h.startswith("suggestion:")), reverse=True)
     v["suggestions"] = [cfg["bank"][str(i)] for _, i in picks if str(i) in cfg["bank"]][:cfg["max_suggestions"]]
