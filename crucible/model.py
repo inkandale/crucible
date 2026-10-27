@@ -55,7 +55,7 @@ def check(crucible: Crucible, fixtures: list) -> list[str]:
     """Every way the model's values differ from the fixtures': scores by more than 1 point, anything else at all."""
     if not fixtures:
         return ["fixtures.json has no cards"]
-    scores = {"quality" if h == "overall" else h.removeprefix("dim:") for h in crucible.cfg["score_heads"]}
+    scores = {"quality" if h == "overall" else h.removeprefix("dim:") for h in crucible.cfg["score_heads"]} | {"severity"}
     problems = []
     for n, fx in enumerate(fixtures):
         got, want = crucible.score(fx["data"]), fx["values"]
