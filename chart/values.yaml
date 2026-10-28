@@ -5,7 +5,7 @@ image:
 
 # The Hugging Face model repo and the bundle tag to serve. A new model version is a new revision here.
 model: dgibbons/crucible
-revision: "v2"
+revision: "v3b"
 
 # An 8k-token card peaks at 11.4 GB: the global attention layers hold full tokens-by-tokens matrices.
 resources:
