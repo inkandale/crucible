@@ -14,6 +14,11 @@ def values(out: dict, cfg: dict) -> dict:
         v["quality" if h == "overall" else h.removeprefix("dim:")] = round(s * 100, 1)
     for head, labels in cfg["classes"].items():
         v[head] = labels[int(np.argmax(out[f"class:{head}"]))]
+    if "ratings" in cfg:  # bundles before v3b publish the rating head's label as it is
+        x = np.asarray(out["class:rating"], dtype=np.float32)
+        p = np.exp(x - x.max()) / np.exp(x - x.max()).sum()
+        v["rating"] = cfg["ratings"][min(int(np.argmax(p)), len(cfg["ratings"]) - 1)]  # extreme reads as nsfw
+        v["severity"] = round(float(p[cfg["classes"]["rating"].index("extreme")]) * 100, 1)
     v["format"] = cfg["format_names"][cfg["formats"][int(np.argmax(out["class:format"]))]]
     cutoffs = cfg["cutoffs"]
     probs = dict(zip(cfg["binary"], sigmoid(out["binary"])))

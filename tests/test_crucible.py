@@ -98,6 +98,13 @@ def test_values():
     assert Crucible(FakeSession(), tokenizer(), CFG).score(CARD) == VALUES
 
 
+def test_a_bundle_with_ratings_publishes_the_rating_head_as_rating_and_severity(monkeypatch):
+    cfg = dict(CFG, classes=dict(CFG["classes"], rating=["sfw", "suggestive", "nsfw", "extreme"]), ratings=["sfw", "suggestive", "nsfw"])
+    monkeypatch.setitem(LOGITS, "class:rating", [0, 0, math.log(2), math.log(4)])  # extreme at 4/8
+    v = Crucible(FakeSession(), tokenizer(), cfg).score(CARD)
+    assert v["rating"] == "nsfw" and v["severity"] == 50.0  # extreme reads as nsfw
+
+
 def test_feeds_int64_ids_with_a_full_mask():
     session = FakeSession()
     Crucible(session, tokenizer(), CFG).score(CARD)
