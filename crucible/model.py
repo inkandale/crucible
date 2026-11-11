@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from .encode import encode, fields
-from .values import values
+from .values import plain, values
 
 
 class Crucible:
@@ -59,6 +59,8 @@ def check(crucible: Crucible, fixtures: list) -> list[str]:
     problems = []
     for n, fx in enumerate(fixtures):
         got, want = crucible.score(fx["data"]), fx["values"]
+        if "suggestions" in want:  # older bundles recorded their bank's placeholders as written
+            want = dict(want, suggestions=[plain(t) for t in want["suggestions"]])
         for k in sorted(got.keys() | want.keys()):
             g, w = got.get(k), want.get(k)
             close = k in scores and isinstance(g, float) and isinstance(w, (int, float)) and abs(g - w) <= 1.0

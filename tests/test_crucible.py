@@ -98,6 +98,26 @@ def test_values():
     assert Crucible(FakeSession(), tokenizer(), CFG).score(CARD) == VALUES
 
 
+def test_base_rates_rank_suggestions_by_lift_and_drop_common_advice():
+    # probabilities: 1 at 0.73, 2 at 0.95, 3 at 0.88; 2 is on most cards, 1 sits furthest above its rate
+    cfg = dict(CFG, base_rates={"suggestion:1": 0.1, "suggestion:2": 0.9, "suggestion:3": 0.5}, max_base_rate=0.5)
+    assert Crucible(FakeSession(), tokenizer(), cfg).score(CARD)["suggestions"] == ["Add a greeting.", "Name the setting."]
+
+
+def test_suggestions_below_their_base_rate_are_left_out():
+    cfg = dict(CFG, base_rates={"suggestion:1": 0.8, "suggestion:2": 0.5, "suggestion:3": 0.5}, max_base_rate=0.5)
+    assert Crucible(FakeSession(), tokenizer(), cfg).score(CARD)["suggestions"] == ["Trim the description.", "Name the setting."]
+    cfg["base_rates"] = {"suggestion:1": 0.8, "suggestion:2": 0.96, "suggestion:3": 0.9}
+    assert Crucible(FakeSession(), tokenizer(), cfg).score(CARD)["suggestions"] == []
+
+
+def test_placeholders_from_an_older_bank_are_written_out_and_its_fixtures_still_pass():
+    cfg = dict(CFG, bank=dict(CFG["bank"], **{"2": "Add example messages in {field}."}))
+    c = Crucible(FakeSession(), tokenizer(), cfg)
+    assert c.score(CARD)["suggestions"] == ["Add example messages in the relevant field.", "Name the setting."]
+    assert check(c, [{"data": CARD, "values": dict(VALUES, suggestions=["Add example messages in {field}.", "Name the setting."])}]) == []
+
+
 def test_a_bundle_with_ratings_publishes_the_rating_head_as_rating_and_severity(monkeypatch):
     cfg = dict(CFG, classes=dict(CFG["classes"], rating=["sfw", "suggestive", "nsfw", "extreme"]), ratings=["sfw", "suggestive", "nsfw"])
     monkeypatch.setitem(LOGITS, "class:rating", [0, 0, math.log(2), math.log(4)])  # extreme at 4/8

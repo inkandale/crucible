@@ -1,6 +1,14 @@
 """A card's logits as the values crucible's enrich plugin stores in Innkeeper: crucible-trainer's publish.values."""
 import numpy as np
 
+PLACEHOLDERS = {"{field}": "the relevant field", "{quote}": "the relevant passage"}  # older banks' namer wrote these
+
+
+def plain(text: str) -> str:
+    for k, v in PLACEHOLDERS.items():
+        text = text.replace(k, v)
+    return text
+
 
 def sigmoid(x) -> list[float]:
     with np.errstate(over="ignore"):  # exp overflows to inf for very negative logits, which still gives 0
@@ -25,6 +33,9 @@ def values(out: dict, cfg: dict) -> dict:
     hit = {h for h, p in probs.items() if p >= cutoffs.get(h, cutoffs["*"])}
     v["flags"] = sorted(h.removeprefix("flag:").replace("_", " ") for h in hit if h.startswith("flag:") or h == "low_effort")
     v["contradictions"] = sorted(" vs ".join(h.split(":")[1:]) for h in hit if h.startswith("contradiction:"))
-    picks = sorted(((probs[h], int(h.split(":")[1])) for h in hit if h.startswith("suggestion:")), reverse=True)
-    v["suggestions"] = [cfg["bank"][str(i)] for _, i in picks if str(i) in cfg["bank"]][:cfg["max_suggestions"]]
+    # bundles without base rates rank by probability alone
+    rates, most = cfg.get("base_rates", {}), cfg.get("max_base_rate", 1.0)
+    picks = sorted(((probs[h] - rates.get(h, 0.0), int(h.split(":")[1])) for h in hit if h.startswith("suggestion:")
+                    and probs[h] > rates.get(h, 0.0) and rates.get(h, 0.0) <= most), reverse=True)
+    v["suggestions"] = [plain(cfg["bank"][str(i)]) for _, i in picks if str(i) in cfg["bank"]][:cfg["max_suggestions"]]
     return v

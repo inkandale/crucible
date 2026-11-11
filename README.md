@@ -2,7 +2,7 @@
 
 Serves a trained crucible model to Innkeeper's crucible enrich plugin. At start it downloads one model **bundle** from Hugging Face, scores the bundle's fixture cards, and refuses to serve if any value differs from what the trainer recorded: a score by more than 1 point, anything else at all. It then answers `POST /score` with `{"values": {...}, "meta": {"source": "crucible", "version": ...}}`, one card at a time.
 
-A bundle is a revision of the Hugging Face model repo holding `model.onnx`, `tokenizer.json`, `crucible.json` (field order, truncation, heads, cutoffs) and `fixtures.json`. crucible-trainer's exporter writes it.
+A bundle is a revision of the Hugging Face model repo holding `model.onnx`, `tokenizer.json`, `crucible.json` (field order, truncation, heads, cutoffs, suggestion base rates) and `fixtures.json`. crucible-trainer's exporter writes it.
 
 ## Environment
 
