@@ -118,6 +118,14 @@ def test_placeholders_from_an_older_bank_are_written_out_and_its_fixtures_still_
     assert check(c, [{"data": CARD, "values": dict(VALUES, suggestions=["Add example messages in {field}.", "Name the setting."])}]) == []
 
 
+def test_a_bundle_without_contradiction_heads_publishes_no_contradictions(monkeypatch):
+    cfg = dict(CFG, binary=[h for h in CFG["binary"] if not h.startswith("contradiction:")])
+    monkeypatch.setitem(LOGITS, "binary", LOGITS["binary"][:3] + LOGITS["binary"][4:])
+    c = Crucible(FakeSession(), tokenizer(), cfg)
+    want = {k: v for k, v in VALUES.items() if k != "contradictions"}
+    assert c.score(CARD) == want and check(c, [{"data": CARD, "values": want}]) == []
+
+
 def test_a_bundle_with_ratings_publishes_the_rating_head_as_rating_and_severity(monkeypatch):
     cfg = dict(CFG, classes=dict(CFG["classes"], rating=["sfw", "suggestive", "nsfw", "extreme"]), ratings=["sfw", "suggestive", "nsfw"])
     monkeypatch.setitem(LOGITS, "class:rating", [0, 0, math.log(2), math.log(4)])  # extreme at 4/8

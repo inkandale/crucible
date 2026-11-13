@@ -32,7 +32,8 @@ def values(out: dict, cfg: dict) -> dict:
     probs = dict(zip(cfg["binary"], sigmoid(out["binary"])))
     hit = {h for h, p in probs.items() if p >= cutoffs.get(h, cutoffs["*"])}
     v["flags"] = sorted(h.removeprefix("flag:").replace("_", " ") for h in hit if h.startswith("flag:") or h == "low_effort")
-    v["contradictions"] = sorted(" vs ".join(h.split(":")[1:]) for h in hit if h.startswith("contradiction:"))
+    if any(h.startswith("contradiction:") for h in cfg["binary"]):  # bundles from v4 on don't train contradictions
+        v["contradictions"] = sorted(" vs ".join(h.split(":")[1:]) for h in hit if h.startswith("contradiction:"))
     # bundles without base rates rank by probability alone
     rates, most = cfg.get("base_rates", {}), cfg.get("max_base_rate", 1.0)
     picks = sorted(((probs[h] - rates.get(h, 0.0), int(h.split(":")[1])) for h in hit if h.startswith("suggestion:")
